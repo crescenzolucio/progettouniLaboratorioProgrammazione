@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1621460233 source:c:\users\cresc\desktop\progettosocialnetwork\main.c
+	<stdio.h>
+	<stdlib.h>
+	<string.h>
+
