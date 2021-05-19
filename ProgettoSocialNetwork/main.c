@@ -17,18 +17,19 @@ typedef struct utente
 int main()
 {
     utente* head = NULL;
-    singup(&head);
-    singup(&head);
-    singup(&head);
-    singup(&head);
+    singup(head);
+    singup(head);
+    singup(head);
+    singup(head);
     print_list(head);
     return 0;
 }
 
-void singup(utente **head){
+void singup(utente *head){
     char *username = malloc(20*sizeof(char));
     char *password = malloc(80*sizeof(char));
     char *confermapassword = malloc(80*sizeof(char));
+    utente * temp = head;
     data infoutente;
     printf("Inserisci il tuo nome utente:");
     fgets(username,20,stdin);
@@ -52,27 +53,25 @@ void singup(utente **head){
     utente * u =  (utente *) malloc(sizeof(utente));
     u->infoutente = infoutente;
     u->next = NULL;
-
-    if(*head == NULL)
-    {
-        *head = u;
-    }else
-    {
-        while((*head)->next != NULL)
-            *head = (*head)->next;
-        (*head)->next = u;
-    }
+    aggiungiUtente(head,u);
 }
-
 
 void print_list(utente *u)
 {
     while(u != NULL)
     {
-        printf("%s->",u->infoutente.username);
-        printf("%s->",u->infoutente.password);
+        printf("Username: %s" ,u->infoutente.username);
+        printf("Password: %s\n",u->infoutente.password);
         u = u->next;
     }
-    printf("NULL\n");
+}
+
+void aggiungiUtente(utente **head_ref, utente *u)
+{
+  /* link the old list at the end of the new node */
+  u->next = *head_ref;
+
+  /* move the head to point to the new node */
+  *head_ref = u;
 }
 
