@@ -13,7 +13,7 @@ typedef struct data
     char username[USER_LENGTH];
     char password[PASS_LENGTH];
     char post[10][POST_LENGTH];
-    struct utente *seguiti;
+    struct seguiti *seguiti;
 }data;
 
 typedef struct utente
@@ -22,18 +22,27 @@ typedef struct utente
     struct utente * next;
 }utente;
 
+typedef struct seguiti
+{
+    utente *seguito;
+    struct seguiti * next;
+}seguiti;
+
 //PROTOTIPI
 utente* signup(utente *head);
 utente* aggiungiutente(utente *head,utente *user);
 void print_list(utente *u);
 utente* controlloutenza(char username[USER_LENGTH],utente* head);
 utente* log_in(utente *head);
+void segui_utente(utente *head,utente *utentein);
 void elimina_account(utente *head);
+utente* init(utente *head);
 
 //MAIN
 int main()
 {
     utente* head = NULL; //testa della lista degli utenti
+    head = init(head);//init
     unsigned int scelta; //scelta menu
     utente* utentein;
     do
@@ -72,7 +81,7 @@ void menu_login(utente *head,utente *utentein)
     do
     {
         system("CLS");
-        printf(" MENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n4)Crea post\n5)Mostra i post di un utente\n6)Vedi l'ultimo post di ogni utente\n7)Log out\n");
+        printf(" MENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n3)Segui utente\n4)Crea post\n5)Mostra i post di un utente\n7)Vedi l'ultimo post di ogni utente\n8)Log out\n");
         scanf("%d",&scelta);
         switch(scelta)
         {
@@ -84,6 +93,10 @@ void menu_login(utente *head,utente *utentein)
                 ricerca_utente(head);
                 system("Pause");
                 break;
+            case 3:
+                segui_utente(head,utentein);
+                system("Pause");
+                break;
             case 4:
                 crea_post(utentein);
                 system("Pause");
@@ -92,11 +105,11 @@ void menu_login(utente *head,utente *utentein)
                 mostra_post(head);
                 system("Pause");
                 break;
-            case 6:
+            case 7:
                 stampa_ultimo_post_utenti(head);
                 system("Pause");
                 break;
-            case 7:
+            case 8:
                 printf("Logout! Si tornerà al menu di login\n");
                 system("Pause");
                 break;
@@ -177,7 +190,6 @@ void stampa_utenti(utente *utente)
 //CONTROLLO PRESENZA UTENZA
 utente* controlloutenza(char username[USER_LENGTH],utente* head)
 {
-printf("-%s",head->infoutente.username);
    while(head != NULL)
     {
         if(strcmp(username,head->infoutente.username) == 0)
@@ -303,8 +315,77 @@ void mostra_post(utente* head)
     {
         while(i<10)
         {
-            printf("Post %d -> %s\n",i,utente->infoutente.post[i]);
+            printf("Post %d -> %s\n",i+1,utente->infoutente.post[i]);
             i++;
         }
     }
+}
+
+void segui_utente(utente* head,utente* utentein)
+{
+    system("CLS");
+    char username[USER_LENGTH];
+    utente* trovato;
+    do
+    {
+        printf("Inserisci l'utente da seguire:");
+        scanf("%s",username);
+        trovato = controlloutenza(username,head);
+        if(trovato != NULL)
+        {
+            seguiti* app = utentein->infoutente.seguiti;
+            seguiti*temp = NULL;
+            temp->seguito = trovato;
+            temp->next = NULL;
+            if(app == NULL)
+            {
+                app =temp;
+            }
+            else
+            {
+                while(app->next !=NULL)
+                    app = app->next;
+                app->next = temp;
+            }
+        }
+    }while(trovato != NULL);
+}
+
+//INIT
+utente* init(utente * head)
+{
+    utente * u = NULL;
+    char names[5][USER_LENGTH] = {
+                         "octavio",
+                         "roberto",
+                         "gibbo",
+                         "luca",
+                         "arturo"
+                     };
+    char posts[10][POST_LENGTH] = {
+                         "ciao mondo","oggi mi sento una sedia",
+                         "pewpew","oggi sono felice",
+                         "non c'è nulla di sbagliato","ho paura",
+                         "ti ho dato i soldi","cuore",
+                         "luvluv","sono morto"
+                     };
+    int i = 0;
+    int j = 0;
+    while(j<5)
+    {
+        u = (utente*)malloc(sizeof(utente));
+        strcpy(u->infoutente.username,names[j]);
+        strcpy(u->infoutente.password,"baubau");
+        u->infoutente.seguiti = NULL;
+        u->next = NULL;
+        while(i<10)
+        {
+            strcpy(u->infoutente.post[i],posts[i]);
+            i++;
+        }
+        i = 0;
+        j++;
+        head = aggiungiutente(head,u);
+    }
+    return head;
 }
