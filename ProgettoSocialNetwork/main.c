@@ -24,7 +24,7 @@ typedef struct utente
 
 typedef struct seguiti
 {
-    utente *seguito;
+    utente * seguito;
     struct seguiti * next;
 }seguiti;
 
@@ -35,7 +35,7 @@ void print_list(utente *u);
 utente* controlloutenza(char username[USER_LENGTH],utente* head);
 utente* log_in(utente *head);
 void segui_utente(utente *head,utente *utentein);
-void elimina_account(utente *head);
+utente* elimina_utente(utente *head);
 utente* init(utente *head);
 
 //MAIN
@@ -62,7 +62,7 @@ int main()
                 system("PAUSE");
                 break;
             case 3:
-                printf("Delete account");
+                head = elimina_utente(head);
                 break;
             case 4:
                 system("PAUSE");
@@ -81,7 +81,7 @@ void menu_login(utente *head,utente *utentein)
     do
     {
         system("CLS");
-        printf(" MENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n3)Segui utente\n4)Crea post\n5)Mostra i post di un utente\n7)Vedi l'ultimo post di ogni utente\n8)Log out\n");
+        printf(" Loggato con %s \n MENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n3)Segui utente\n4)Crea post\n5)Mostra i post di un utente\n6)Mostra i post dei seguiti\n7)Vedi l'ultimo post di ogni utente\n8)Log out\n",utentein->infoutente.username);
         scanf("%d",&scelta);
         switch(scelta)
         {
@@ -105,6 +105,10 @@ void menu_login(utente *head,utente *utentein)
                 mostra_post(head);
                 system("Pause");
                 break;
+            case 6:
+                vedi_post_seguiti(utentein);
+                system("Pause");
+                break;
             case 7:
                 stampa_ultimo_post_utenti(head);
                 system("Pause");
@@ -117,7 +121,7 @@ void menu_login(utente *head,utente *utentein)
                 printf("default");
                 break;
         }
-    }while(scelta != 7);
+    }while(scelta != 8);
 }
 
 //FUNZIONI
@@ -157,7 +161,7 @@ utente* signup(utente *head)
         }
     }while(strcmp(password, confermapassword));
     strcpy(nuovoutente->infoutente.post,"");
-    nuovoutente->infoutente.seguiti = NULL;
+    nuovoutente->infoutente.seguiti = (seguiti*)malloc(sizeof(seguiti));
     return nuovoutente;
 }
 //AGGIUNGI UTENTE LISTA
@@ -250,12 +254,6 @@ utente* log_in(utente *head)
     return controllousername;
     system("PAUSE");
 }
-//ELIMINAZIONE ACCOUNT
-void elimina_account(utente *head)
-{
-
-}
-
 //RICERCA UTENTE
 void ricerca_utente(utente* head)
 {
@@ -321,34 +319,46 @@ void mostra_post(utente* head)
     }
 }
 
+//SEGUI UTENTE
 void segui_utente(utente* head,utente* utentein)
 {
-    system("CLS");
     char username[USER_LENGTH];
-    utente* trovato;
-    do
+    utente* trovato = NULL;
+    seguiti* temp = (seguiti*)malloc(sizeof(seguiti));
+    seguiti* app = utentein->infoutente.seguiti;
+    printf("Inserisci l'utente da seguire:");
+    scanf("%s",username);
+    trovato = controlloutenza(username,head);
+    if(trovato != NULL)
     {
-        printf("Inserisci l'utente da seguire:");
-        scanf("%s",username);
-        trovato = controlloutenza(username,head);
-        if(trovato != NULL)
+        temp->seguito = trovato;
+        temp->next = NULL;
+
+        if(app == NULL)
         {
-            seguiti* app = utentein->infoutente.seguiti;
-            seguiti*temp = NULL;
-            temp->seguito = trovato;
-            temp->next = NULL;
-            if(app == NULL)
-            {
-                app =temp;
-            }
-            else
-            {
-                while(app->next !=NULL)
-                    app = app->next;
-                app->next = temp;
-            }
+            utentein->infoutente.seguiti = temp;
         }
-    }while(trovato != NULL);
+        else
+        {
+            while(app->next !=NULL)
+                app = app->next;
+            app->next = temp;
+        }
+    }else
+    {
+        printf("utente inesistente!");
+    }
+}
+
+//VEDI ULTIMO POST DEI SEGUITI
+void vedi_post_seguiti(utente* utentein)
+{
+    seguiti* seguiti = utentein->infoutente.seguiti;
+    while(seguiti != NULL)
+    {
+        printf("%s -> %s\n",seguiti->seguito->infoutente.username,seguiti->seguito->infoutente.post[0]);
+        seguiti = seguiti->next;
+    }
 }
 
 //INIT
@@ -388,4 +398,35 @@ utente* init(utente * head)
         head = aggiungiutente(head,u);
     }
     return head;
+}
+//ELIMINA UTENTE
+utente* elimina_utente(utente* head)
+{
+   char username[USER_LENGTH];
+   utente* temp = head;
+   utente* app = head;
+   printf("Inserisci l'utenza che vuoi eliminare:");
+   scanf("%s",username);
+   if(strcmp(username,head->infoutente.username) == 0)
+   {
+        head = head->next;
+        free(temp);
+        return head;
+   }
+   else
+   {
+    head = head->next;
+    while(head != NULL)
+    {
+        if(strcmp(username,head->infoutente.username) == 0)
+        {
+            temp->next = head->next;
+            free(head);
+            return app;
+        }
+        temp = temp->next;
+        head = head->next;
+    }
+    printf("L'utente %s non è stato trovato!",username);
+   }
 }
