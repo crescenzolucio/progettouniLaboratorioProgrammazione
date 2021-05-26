@@ -1,87 +1,97 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdbool.h>
 #include <string.h>
 
 #define USER_LENGTH 16
 #define PASS_LENGTH 16
 #define POST_LENGTH 400
 
-//Definizione dei tipi
+//Definizione dei tipi strutturati
 typedef struct data
 {
     char username[USER_LENGTH];
     char password[PASS_LENGTH];
     char post[10][POST_LENGTH];
     struct seguiti *seguiti;
-}data;
+}data;//data contenente le informazioni sull'utente
 
 typedef struct utente
 {
     data infoutente;
     struct utente * next;
-}utente;
+}utente;//utente
 
 typedef struct seguiti
 {
     utente * seguito;
     struct seguiti * next;
-}seguiti;
+}seguiti;//seguiti
 
-//PROTOTIPI
-utente* signup(utente *head);
-utente* aggiungiutente(utente *head,utente *user);
-void print_list(utente *u);
-utente* controlloutenza(char username[USER_LENGTH],utente* head);
-utente* log_in(utente *head);
-void segui_utente(utente *head,utente *utentein);
-utente* elimina_utente(utente *head);
-utente* init(utente *head);
+//Prototipi delle funzioni
+void menu_login(utente *head,utente *utentein);     //Menu dopo aver effettuato il login
+utente* signup(utente *head);                       //Funzione di login
+utente* aggiungiutente(utente *head,utente *user);  //Viene aggiunto un nuovo utente
+void stampa_utenti(utente *utente);                 //Mostra il nome di tutti gli utenti
+utente* controlloutenza(char username[USER_LENGTH],utente* head);                                //Controlla se l'utenza esiste e la resistuisce come output
+int controllopasswordutenza(char username[USER_LENGTH],char password[PASS_LENGTH],utente* head); //Verifico se la password inserita sia giusta
+utente* log_in(utente *head);                       //Log in con username e password
+void ricerca_utente(utente* head);                  //COntrollo se un utente è presente
+void crea_post(utente* utenza);                     //Crea un nuovo post
+void stampa_ultimo_post_utenti(utente *head);       //Stampa l'ultimo post di tutti gli utenti
+void mostra_post(utente* head);                     //Mostra gli ultimi 10 post di un utente inserito se esistente
+void segui_utente(utente* head,utente* utentein);   //Inserisce il nome di un nuovo utente da seguire
+void vedi_post_seguiti(utente* utentein);           //Mostra l'ultimo post di ogni utente seguito
+utente* init(utente * head);                        //Inizializza il social con 5 account con 10 post ciascuno
+utente* elimina_utente(utente* head);               //Elimina un utente
 
-//MAIN
+//Main
 int main()
 {
-    utente* head = NULL; //testa della lista degli utenti
-    head = init(head);//init
-    unsigned int scelta; //scelta menu
+    utente* head = NULL; //Testa della lista degli utenti
+    head = init(head);   //Inizializzazione
+    unsigned int scelta; //Scelta menu
     utente* utentein;
     do
     {
         system("CLS");
-        printf(" MENU \n1)Log in \n2)Sign up \n3)Delete account \n4)Per uscire\n");
+        printf("MENU \n1)Log in \n2)Sign up \n3)Elimina utenza \n4)Per uscire\n");
         scanf("%d",&scelta);
         switch(scelta)
         {
-            case 1:
+            case 1://Login
                 utentein = log_in(head);
                 menu_login(head,utentein);
                 break;
-            case 2:
+            case 2://Signup
                 head = aggiungiutente(head,signup(head));
                 printf("Utenza creata!\n");
                 system("PAUSE");
                 break;
-            case 3:
+            case 3://Elimina
                 head = elimina_utente(head);
+                printf("Utenza eliminata!\n");
+                system("PAUSE");
                 break;
-            case 4:
+            case 4://Uscire
                 system("PAUSE");
                 break;
             default:
-                printf("default");
+                printf("Scelta errata!\n");
+                system("Pause");
                 break;
         }
     }while(scelta !=4);
     return 0;
 }
-//MENU DOPO LOGIN
+
+//Menu dopo il login
 void menu_login(utente *head,utente *utentein)
 {
     int scelta;
     do
     {
         system("CLS");
-        printf(" Loggato con %s \n MENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n3)Segui utente\n4)Crea post\n5)Mostra i post di un utente\n6)Mostra i post dei seguiti\n7)Vedi l'ultimo post di ogni utente\n8)Log out\n",utentein->infoutente.username);
+        printf("Loggato con %s \nMENU \n1)Visualizza il nome degli utenti\n2)Ricerca utente\n3)Segui utente\n4)Crea post\n5)Mostra i post di un utente\n6)Mostra l'ultimo post dei seguiti\n7)Vedi l'ultimo post di ogni utente\n8)Log out\n",utentein->infoutente.username);
         scanf("%d",&scelta);
         switch(scelta)
         {
@@ -114,33 +124,70 @@ void menu_login(utente *head,utente *utentein)
                 system("Pause");
                 break;
             case 8:
-                printf("Logout! Si tornerà al menu di login\n");
+                printf("Logout! Si tornera al menu di login\n");
                 system("Pause");
                 break;
             default:
-                printf("default");
+                printf("Scelta errata!\n");
+                system("Pause");
                 break;
         }
     }while(scelta != 8);
 }
 
-//FUNZIONI
+//Log in
+utente* log_in(utente *head)
+{
+    char username[USER_LENGTH];
+    char password[USER_LENGTH];
+    utente* controllousername;
+    int controllopassword;
+    do
+    {
+        system("CLS");
+        printf("Inserisci il nome utente:");
+        scanf("%s",username);
+        controllousername = controlloutenza(username,head);
+        if(controllousername == NULL)
+        {
+            printf("Utenza non trovata inserire nuovo utente!\n");
+            system("PAUSE");
+        }
+    }while(controllousername == NULL);
+
+    do
+    {
+        printf("Inserisci la password:");
+        scanf("%s",password);
+        controllopassword = controllopasswordutenza(username,password,head);
+        if(controllopassword != 0)
+        {
+            printf("Password errata \n");
+            system("PAUSE");
+        }
+    }while(controllopassword !=0);
+    printf("Log in  effettuato!\n");
+    return controllousername;
+    system("PAUSE");
+}
+
+//Registrazione utenza
 utente* signup(utente *head)
 {
-    system("CLS");
     utente * nuovoutente = (utente*)malloc(sizeof(utente));
     char password[PASS_LENGTH];
     char confermapassword[PASS_LENGTH];
     utente* trovato;
     do
     {
+        system("CLS");
         printf("Inserisci il tuo nome utente:");
         scanf("%s",nuovoutente->infoutente.username);
         trovato = controlloutenza(nuovoutente->infoutente.username,head);
         if(trovato != NULL)
         {
-            system("CLS");
-            printf("Utenza già esistente!\n");
+            printf("Utenza gia' esistente!\n");
+            system("PAUSE");
         }
     }while(trovato != NULL);
     do
@@ -161,10 +208,11 @@ utente* signup(utente *head)
         }
     }while(strcmp(password, confermapassword));
     strcpy(nuovoutente->infoutente.post,"");
-    nuovoutente->infoutente.seguiti = (seguiti*)malloc(sizeof(seguiti));
+    nuovoutente->infoutente.seguiti = NULL;
     return nuovoutente;
 }
-//AGGIUNGI UTENTE LISTA
+
+//Aggiunge un nuovo utente alla lista degli utenti
 utente* aggiungiutente(utente *head,utente *user)
 {
     utente* temp = head;
@@ -181,7 +229,8 @@ utente* aggiungiutente(utente *head,utente *user)
         return head;
     }
 }
-//STAMPA LISTA
+
+//Visualizza il nome di tutti gli utenti
 void stampa_utenti(utente *utente)
 {
     printf("UTENTI\n");
@@ -191,7 +240,8 @@ void stampa_utenti(utente *utente)
         utente = utente->next;
     }
 }
-//CONTROLLO PRESENZA UTENZA
+
+//Verifica dell'esistenza di un utenza
 utente* controlloutenza(char username[USER_LENGTH],utente* head)
 {
    while(head != NULL)
@@ -202,7 +252,8 @@ utente* controlloutenza(char username[USER_LENGTH],utente* head)
     }
     return NULL;
 }
-//CONTROLLO PASSWORD UTENZA
+
+//Verifica password
 int controllopasswordutenza(char username[USER_LENGTH],char password[PASS_LENGTH],utente* head)
 {
    while(head != NULL)
@@ -220,41 +271,8 @@ int controllopasswordutenza(char username[USER_LENGTH],char password[PASS_LENGTH
     }
     return 1;
 }
-//LOGIN
-utente* log_in(utente *head)
-{
-    char username[USER_LENGTH];
-    char password[USER_LENGTH];
-    utente* controllousername;
-    int controllopassword;
-    do
-    {
-        system("CLS");
-        printf("Inserisci il nome utente:");
-        scanf("%s",username);
-        controllousername = controlloutenza(username,head);
-        if(controllousername == NULL)
-        {
-            printf("Utenza non trovata inserire nuovo utente!\n");
-        }
-    }while(controllousername == NULL);
 
-    do
-    {
-        system("CLS");
-        printf("Inserisci la password:");
-        scanf("%s",password);
-        controllopassword = controllopasswordutenza(username,password,head);
-        if(controllopassword != 0)
-        {
-            printf("Password errata \n");
-        }
-    }while(controllopassword !=0);
-    printf("Log in  effettuato!\n");
-    return controllousername;
-    system("PAUSE");
-}
-//RICERCA UTENTE
+//Verifica l'esistenza di un utenza
 void ricerca_utente(utente* head)
 {
    char username[USER_LENGTH];
@@ -264,20 +282,31 @@ void ricerca_utente(utente* head)
     {
         if(strcmp(username,head->infoutente.username) == 0)
             {
-                printf("L'utente %s è stato trovato!\n",username);
+                printf("L'utente %s e' stato trovato!\n",username);
                 return;
             }
         head = head->next;
     }
-    printf("L'utente %s non è stato trovato!",username);
+    printf("L'utente %s non e' stato trovato!\n",username);
 }
-//CREA POST
+
+//Crea un post
 void crea_post(utente* utenza)
 {
     char post[POST_LENGTH];
     int i = 9;
-    printf("Inserisci il post solo testo 400 char");
-    scanf("%s",post);
+    int x;
+    printf("Inserisci il post solo testo (MAX 400): ");
+    fgetc(stdin);//per far funzionare fgets
+    fgets(post,sizeof(post),stdin);
+    for(x=0;x<=POST_LENGTH;x++) //fix fgets
+    {
+        if( post[x] == '\n')
+        {
+            post[x] = '\0';
+            break;
+        }
+    }
     while(i>0)
     {
         strcpy(utenza->infoutente.post[i],utenza->infoutente.post[i-1]);
@@ -286,18 +315,24 @@ void crea_post(utente* utenza)
     strcpy(utenza->infoutente.post[0],post);
 }
 
-//STAMPA ULTIMO POST UTENTEI
+//Stampa l'ultimo post di tutti gli utenti
 void stampa_ultimo_post_utenti(utente *head)
 {
     printf("ULTIMO POST DI TUTTI GLI UTENTE\n");
     while(head != NULL)
     {
-        printf("%s -> %s\n" ,head->infoutente.username,head->infoutente.post[0]);
+        if(strcmp(head->infoutente.post[0],"") != 0)
+        {
+            printf("%s -> %s\n" ,head->infoutente.username,head->infoutente.post[0]);
+        }else
+        {
+            printf("%s -> %s\n" ,head->infoutente.username,"NO POST");
+        }
         head = head->next;
     }
 }
 
-//RICERCA UTENTE
+//Mostra i post di un utente inserito
 void mostra_post(utente* head)
 {
     char username[USER_LENGTH];
@@ -313,13 +348,14 @@ void mostra_post(utente* head)
     {
         while(i<10)
         {
-            printf("Post %d -> %s\n",i+1,utente->infoutente.post[i]);
+            if(strcmp(utente->infoutente.post[i],"") != 0)
+                printf("Post %d -> %s\n",i+1,utente->infoutente.post[i]);
             i++;
         }
     }
 }
 
-//SEGUI UTENTE
+//Segue un utente
 void segui_utente(utente* head,utente* utentein)
 {
     char username[USER_LENGTH];
@@ -344,13 +380,14 @@ void segui_utente(utente* head,utente* utentein)
                 app = app->next;
             app->next = temp;
         }
+        printf("L'utente %s e' stato aggiunto ai seguiti!\n",username);
     }else
     {
-        printf("utente inesistente!");
+        printf("L'utente %s e' inesistente!\n",username);
     }
 }
 
-//VEDI ULTIMO POST DEI SEGUITI
+//Stampo l'ultimo post di ogni seguito
 void vedi_post_seguiti(utente* utentein)
 {
     seguiti* seguiti = utentein->infoutente.seguiti;
@@ -361,7 +398,7 @@ void vedi_post_seguiti(utente* utentein)
     }
 }
 
-//INIT
+//Inizializzazione
 utente* init(utente * head)
 {
     utente * u = NULL;
@@ -399,7 +436,8 @@ utente* init(utente * head)
     }
     return head;
 }
-//ELIMINA UTENTE
+
+//Elimina un utenza
 utente* elimina_utente(utente* head)
 {
    char username[USER_LENGTH];
@@ -410,6 +448,7 @@ utente* elimina_utente(utente* head)
    if(strcmp(username,head->infoutente.username) == 0)
    {
         head = head->next;
+        free(head->infoutente.post);
         free(temp);
         return head;
    }
@@ -421,6 +460,7 @@ utente* elimina_utente(utente* head)
         if(strcmp(username,head->infoutente.username) == 0)
         {
             temp->next = head->next;
+            free(head->infoutente.post);
             free(head);
             return app;
         }
@@ -429,4 +469,23 @@ utente* elimina_utente(utente* head)
     }
     printf("L'utente %s non è stato trovato!",username);
    }
+}
+
+//Elimina un seguito
+void elimina_utente(utente* utente,char username[USER_LENGTH])
+{
+       seguiti* temp = utente->infoutente.seguiti;
+       seguiti* app = utente->infoutente.seguiti;
+
+       if(strcmp(username,temp->seguito.infoutente->username) == 0)
+       {
+            app = temp->seguito;
+            free(utente);
+            temp->seguito= temp->seguito->next;
+       }
+       else
+       {
+
+       }
+       utente = utente->next;
 }
