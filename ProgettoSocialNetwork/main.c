@@ -43,6 +43,8 @@ void segui_utente(utente* head,utente* utentein);   //Inserisce il nome di un nu
 void vedi_post_seguiti(utente* utentein);           //Mostra l'ultimo post di ogni utente seguito
 utente* init(utente * head);                        //Inizializza il social con 5 account con 10 post ciascuno
 utente* elimina_utente(utente* head);               //Elimina un utente
+void elimina_seguito(utente* head,char username[USER_LENGTH]); //Elimina i seguiti prima di eliminare l'utenza
+int controllo_seguiti(char username[USER_LENGTH],seguiti* head); //Controllo se ho già inserito l'utente che sto inserendo
 
 //Main
 int main()
@@ -253,6 +255,18 @@ utente* controlloutenza(char username[USER_LENGTH],utente* head)
     return NULL;
 }
 
+//Verifica della presenza nei seguiti
+int controllo_seguiti(char username[USER_LENGTH],seguiti* head)
+{
+   while(head != NULL)
+    {
+        if(strcmp(username,head->seguito->infoutente.username) == 0)
+            return 1;
+        head = head->next;
+    }
+    return 0;
+}
+
 //Verifica password
 int controllopasswordutenza(char username[USER_LENGTH],char password[PASS_LENGTH],utente* head)
 {
@@ -359,31 +373,39 @@ void mostra_post(utente* head)
 void segui_utente(utente* head,utente* utentein)
 {
     char username[USER_LENGTH];
+    int controlloseguito;
     utente* trovato = NULL;
     seguiti* temp = (seguiti*)malloc(sizeof(seguiti));
     seguiti* app = utentein->infoutente.seguiti;
     printf("Inserisci l'utente da seguire:");
     scanf("%s",username);
     trovato = controlloutenza(username,head);
-    if(trovato != NULL)
+    controlloseguito = controllo_seguiti(username,utentein->infoutente.seguiti);
+    if(controlloseguito == 0)
     {
-        temp->seguito = trovato;
-        temp->next = NULL;
+        if(trovato != NULL)
+        {
+            temp->seguito = trovato;
+            temp->next = NULL;
 
-        if(app == NULL)
+            if(app == NULL)
+            {
+                utentein->infoutente.seguiti = temp;
+            }
+            else
+            {
+                while(app->next !=NULL)
+                    app = app->next;
+                app->next = temp;
+            }
+            printf("L'utente %s e' stato aggiunto ai seguiti!\n",username);
+        }else
         {
-            utentein->infoutente.seguiti = temp;
+            printf("L'utente %s e' inesistente!\n",username);
         }
-        else
-        {
-            while(app->next !=NULL)
-                app = app->next;
-            app->next = temp;
-        }
-        printf("L'utente %s e' stato aggiunto ai seguiti!\n",username);
     }else
     {
-        printf("L'utente %s e' inesistente!\n",username);
+        printf("L'utente %s e' gia' presente tra i seguiti!\n",username);
     }
 }
 
@@ -445,6 +467,7 @@ utente* elimina_utente(utente* head)
    utente* app = head;
    printf("Inserisci l'utenza che vuoi eliminare:");
    scanf("%s",username);
+   elimina_seguito(head,username); //elimino prima tutti i seguiti
    if(strcmp(username,head->infoutente.username) == 0)
    {
         head = head->next;
@@ -471,21 +494,35 @@ utente* elimina_utente(utente* head)
    }
 }
 
-//Elimina un seguito
-void elimina_utente(utente* utente,char username[USER_LENGTH])
+//Elimina utente eliminato dai seguiti
+void elimina_seguito(utente* head,char username[USER_LENGTH])
 {
-       seguiti* temp = utente->infoutente.seguiti;
-       seguiti* app = utente->infoutente.seguiti;
+    seguiti* segui = NULL;
+    seguiti* seguitonext = NULL;
+    while(head != NULL)
+    {
+        if(head->infoutente.seguiti != NULL)
+        {
+            segui = head->infoutente.seguiti;
+            seguitonext = head->infoutente.seguiti->next;
 
-       if(strcmp(username,temp->seguito.infoutente->username) == 0)
-       {
-            app = temp->seguito;
-            free(utente);
-            temp->seguito= temp->seguito->next;
-       }
-       else
-       {
-
-       }
-       utente = utente->next;
+            if(strcmp(segui->seguito->infoutente.username,username) == 0)
+            {
+                head->infoutente.seguiti = seguitonext;
+            }
+            else
+            {
+                while(segui != NULL)
+                {
+                     if(strcmp(username,seguitonext->seguito->infoutente.username) == 0)
+                     {
+                        segui->next = seguitonext->next;
+                     }
+                     segui = segui->next;
+                     seguitonext = seguitonext->next;
+                }
+            }
+        }
+        head = head->next;
+    }
 }
