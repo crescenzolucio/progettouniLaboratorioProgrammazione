@@ -35,7 +35,7 @@ void stampa_utenti(utente *utente);                 //Mostra il nome di tutti gl
 utente* controllo_utenza(char username[USER_LENGTH],utente* head);                                //Controlla se l'utenza esiste e la resistuisce come output
 int controllo_password_utenza(char username[USER_LENGTH],char password[PASS_LENGTH],utente* head); //Verifico se la password inserita sia giusta
 utente* log_in(utente *head);                       //Log in con username e password
-void ricerca_utente(utente* head);                  //COntrollo se un utente è presente
+void ricerca_utente(utente* head);                  //Controllo se un utente è presente
 void crea_post(utente* utenza);                     //Crea un nuovo post
 void stampa_ultimo_post_utenti(utente *head);       //Stampa l'ultimo post di tutti gli utenti
 void mostra_post(utente* head);                     //Mostra gli ultimi 10 post di un utente inserito se esistente
@@ -71,7 +71,7 @@ int main()
                 break;
             case 3://Elimina
                 head = elimina_utente(head);
-                printf("Utenza eliminata!\n");
+
                 system("PAUSE");
                 break;
             case 4://Uscire
@@ -180,6 +180,7 @@ utente* log_in(utente *head)
 utente* sign_up(utente *head)
 {
     utente * nuovoutente = (utente*)malloc(sizeof(utente));
+    int i = 0;
     char password[PASS_LENGTH];
     char confermapassword[PASS_LENGTH];
     utente* trovato;
@@ -187,7 +188,7 @@ utente* sign_up(utente *head)
     do
     {
         system("CLS");
-        printf("Inserisci il tuo nome utente:");
+        printf("Inserisci il tuo nome utente(MAX 15):");
         scanf("%s",nuovoutente->infoutente.username);
         trovato = controllo_utenza(nuovoutente->infoutente.username,head);
         if(trovato != NULL)
@@ -199,9 +200,9 @@ utente* sign_up(utente *head)
     //Verifico se la password e la conferma siano uguali e l'aggiungo alla nuova utenza
     do
     {
-        printf("Inserisci la tua password:");
+        printf("Inserisci la tua password(MAX 15):");
         scanf("%s",password);
-        printf("Conferma password :");
+        printf("Conferma password (MAX 15):");
         scanf("%s",confermapassword);
         if(strcmp(password, confermapassword) != 0) //strcmp compara due stringhe se restituisce 0 sono uguali
         {
@@ -215,8 +216,13 @@ utente* sign_up(utente *head)
         }
     }while(strcmp(password, confermapassword));
 
-    strcpy(nuovoutente->infoutente.post,""); //Popolo i post ed i seguiti per evitare problemi di segmentaion fault
+    while(i<10)  //Popolo i post ed i seguiti per evitare problemi di segmentaion fault
+        {
+            strcpy(nuovoutente->infoutente.post[i],"");
+            i++;
+        }
     nuovoutente->infoutente.seguiti = NULL;
+    nuovoutente->next = NULL;
     return nuovoutente; //restituisco la nuova utenza
 }
 
@@ -225,7 +231,7 @@ utente* aggiungi_utente(utente *head,utente *user)
 {
     //scorro la lista fino alla coda per poi inserire la nuova utenza
     utente* temp = head;
-    if(head == NULL)
+    if(head == NULL) //in caso la lista sia vuota restituisco la nuova utenza
     {
         return user;
     }else
@@ -322,16 +328,16 @@ void crea_post(utente* utenza)
     //Creo un post per l'utenza loggata
     char post[POST_LENGTH];
     int i = 9;
-    int x;
+    int j;
     printf("Inserisci il post solo testo (MAX 400): ");
     fgetc(stdin);//Usato per il corretto funzionamento di fgets
     fgets(post,sizeof(post),stdin);
 
-    for(x=0;x<=POST_LENGTH;x++) //scorro per eliminare \n inserito alla fine del fgets
+    for(j=0;j<=POST_LENGTH;j++) //scorro per eliminare \n inserito alla fine del fgets
     {
-        if( post[x] == '\n')
+        if( post[j] == '\n')
         {
-            post[x] = '\0';
+            post[j] = '\0';
             break;
         }
     }
@@ -351,6 +357,7 @@ void stampa_ultimo_post_utenti(utente *head)
     printf("ULTIMO POST DI TUTTI GLI UTENTE\n");
     while(head != NULL)
     {
+        //il post in posizione 0 è l'ultimo inserito
         if(strcmp(head->infoutente.post[0],"") != 0)
         {
             printf("%s -> %s\n" ,head->infoutente.username,head->infoutente.post[0]);
@@ -389,14 +396,14 @@ void mostra_post(utente* head)
 void segui_utente(utente* head,utente* utentein)
 {
     char username[USER_LENGTH];
-    int controlloseguito;
+    int controlloseguito; //controllo per la verifica della presenza del seguito
     utente* trovato = NULL;
     seguiti* temp = (seguiti*)malloc(sizeof(seguiti));
     seguiti* app = utentein->infoutente.seguiti;
     printf("Inserisci l'utente da seguire:");
     scanf("%s",username);
-    trovato = controllo_utenza(username,head);
-    controlloseguito = controllo_seguiti(username,utentein->infoutente.seguiti);
+    trovato = controllo_utenza(username,head);//verifico se l'utenza da seguire esista
+    controlloseguito = controllo_seguiti(username,utentein->infoutente.seguiti);//controllo se è gia presente
     if(controlloseguito == 0)
     {
         if(trovato != NULL)
@@ -404,12 +411,12 @@ void segui_utente(utente* head,utente* utentein)
             temp->seguito = trovato;
             temp->next = NULL;
 
-            if(app == NULL)
+            if(app == NULL) //se non ci sono seguiti
             {
                 utentein->infoutente.seguiti = temp;
             }
             else
-            {
+            {   //seguo la lista fino all'ultimo ed aggiungo il nuovo in coda
                 while(app->next !=NULL)
                     app = app->next;
                 app->next = temp;
@@ -432,13 +439,13 @@ void vedi_post_seguiti(utente* utentein)
     seguiti* seguiti = utentein->infoutente.seguiti;
     if(seguiti == NULL)
     {
-        printf("Non ci sono seguiti!");
+        printf("Non ci sono seguiti!\n");
     }
     else
     {
         while(seguiti != NULL)
         {
-            printf("%s -> %s\n",seguiti->seguito->infoutente.username,seguiti->seguito->infoutente.post[0]);
+            printf("%s -> %s\n",seguiti->seguito->infoutente.username,seguiti->seguito->infoutente.post[0]);//l'ultimo post è quello in posizione 0
             seguiti = seguiti->next;
         }
     }
@@ -458,9 +465,9 @@ utente* init(utente * head)
     char posts[10][POST_LENGTH] = {
                          "ciao mondo","oggi mi sento una sedia",
                          "pewpew","oggi sono felice",
-                         "non c'è nulla di sbagliato","ho paura",
+                         "non c'è nulla di sbagliato","wuii",
                          "ti ho dato i soldi","cuore",
-                         "luvluv","sono morto"
+                         "ho finito il progetto","sono vivo"
                      };
     int i = 0;
     int j = 0;
@@ -487,63 +494,108 @@ utente* init(utente * head)
 utente* elimina_utente(utente* head)
 {
    char username[USER_LENGTH];
+   char password[USER_LENGTH];
+   utente* ctrlusername; //controllo per verifica dell'utenza
+   int ctrlpassword = 0;
+   char scelta = ' ';
    utente* temp = head;
    utente* app = head;
-   printf("Inserisci l'utenza che vuoi eliminare:");
-   scanf("%s",username);
-   elimina_seguito(head,username); //elimino prima tutti i seguiti
-   if(strcmp(username,head->infoutente.username) == 0) //se è il primo della lista
-   {
-        head = head->next;
-        free(head->infoutente.post);//elimino post
-        free(temp);//elimino l'intera utenza
-        return head;
-   }
-   else//se è oltr eil primo
-   {
-    head = head->next;
-    while(head != NULL)
+
+   //CONTROLLO UTENZA
+    do
     {
-        if(strcmp(username,head->infoutente.username) == 0)//applico la stessa logica
+        //Verifico se l'utenza è presente
+        system("CLS");
+        printf("Inserisci il nome utente:");
+        scanf("%s",username);
+        ctrlusername = controllo_utenza(username,head);
+        if(ctrlusername == NULL)
         {
-            temp->next = head->next;
-            free(head->infoutente.post);
-            free(head);
-            return app;
+            printf("Utenza non trovata inserire nuovo utente!\n");
+            system("PAUSE");
         }
-        temp = temp->next;
+    }while(ctrlusername == NULL);
+    do
+    {
+        //Verifico se la password inserita sia giusta e ripeto finchè non viene inserita quella esatta
+        printf("Inserisci la password:");
+        scanf("%s",password);
+        ctrlpassword = controllo_password_utenza(username,password,head);
+        if(ctrlpassword != 0)
+        {
+            printf("Password errata \n");
+            system("PAUSE");
+        }
+    }while(ctrlpassword !=0);
+    system("CLS");
+    printf("Vuoi eliminare la tua utenza?[Y/N]");//conferma eliminazione
+    scanf(" %c",&scelta);
+
+   //ELIMINAZIONE
+   if(scelta == 'Y' || scelta == 'y'){
+       elimina_seguito(head,username); //elimino prima tutti i seguiti
+       if(strcmp(username,head->infoutente.username) == 0) //se è il primo della lista
+       {
+            head = head->next;
+            free(head->infoutente.post);//elimino post
+            free(temp);//elimino l'intera utenza
+            return head;
+       }
+       else//se è oltre il primo
+       {
         head = head->next;
+        while(head != NULL)
+        {
+            if(strcmp(username,head->infoutente.username) == 0)//applico la stessa logica
+            {
+                temp->next = head->next;
+                free(head->infoutente.post);
+                free(head);
+                return app;
+            }
+            temp = temp->next;
+            head = head->next;
+        }
+       }
+    }else
+    {
+        printf("Eliminazione annullata!\n",username);//in caso si utente non trovato
     }
-    printf("L'utente %s non è stato trovato!",username);//in caso si utente non trovato
-   }
 }
 
 //Elimina utente eliminato dai seguiti
 void elimina_seguito(utente* head,char username[USER_LENGTH])
 {
     seguiti* segui = NULL;
-    seguiti* seguitonext = NULL;
+    seguiti* temp = NULL;
     while(head != NULL) //scorro la lista
     {
         if(head->infoutente.seguiti != NULL) //verifico che l'utenza abbia dei seguiti
         {
             segui = head->infoutente.seguiti; //salvo il corrente
-            seguitonext = head->infoutente.seguiti->next; //salvo il prossimo seguito
+            temp = head->infoutente.seguiti->next; //salvo il prossimo seguito
 
             if(strcmp(segui->seguito->infoutente.username,username) == 0) //se è il primo
             {
-                head->infoutente.seguiti = seguitonext;
+                free(head->infoutente.seguiti);
+                head->infoutente.seguiti = temp;
             }
             else //in alternativa controllo gli altri
             {
-                while(segui != NULL)//scorro i seguiti
+                temp = segui;
+                segui = segui->next;
+                while(segui != NULL)
                 {
-                     if(strcmp(username,seguitonext->seguito->infoutente.username) == 0)
-                     {
-                        segui->next = seguitonext->next;
-                     }
-                     segui = segui->next;
-                     seguitonext = seguitonext->next;
+                    if(strcmp(username,segui->seguito->infoutente.username) == 0)//applico la stessa logica e tengo traccia del seguito precedente a quello che verrà eliminato
+                    {
+                        temp->next = segui->next;
+                        free(segui);
+                        segui = temp->next;
+                    }else
+                    {
+                        segui = segui->next;
+                        temp = temp->next;
+                    }
                 }
             }
         }
