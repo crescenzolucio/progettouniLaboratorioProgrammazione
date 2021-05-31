@@ -32,7 +32,7 @@ void menu_login(utente *head,utente *utentein);     //Menu dopo aver effettuato 
 utente* sign_up(utente *head);                       //Funzione di login
 utente* aggiungi_utente(utente *head,utente *user);  //Viene aggiunto un nuovo utente
 void stampa_utenti(utente *utente);                 //Mostra il nome di tutti gli utenti
-utente* controllo_utenza(char username[USER_LENGTH],utente* head);                                //Controlla se l'utenza esiste e la resistuisce come output
+utente* controllo_utenza(char username[USER_LENGTH],utente* head);                                 //Controlla se l'utenza esiste e la resistuisce come output
 int controllo_password_utenza(char username[USER_LENGTH],char password[PASS_LENGTH],utente* head); //Verifico se la password inserita sia giusta
 utente* log_in(utente *head);                       //Log in con username e password
 void ricerca_utente(utente* head);                  //Controllo se un utente è presente
@@ -71,7 +71,6 @@ int main()
                 break;
             case 3://Elimina
                 head = elimina_utente(head);
-
                 system("PAUSE");
                 break;
             case 4://Uscire
@@ -89,7 +88,7 @@ int main()
 //Menu dopo il login
 void menu_login(utente *head,utente *utentein)
 {
-    int scelta;
+    unsigned int scelta; //Scelta menu
     do
     {
         system("CLS");
@@ -151,25 +150,25 @@ utente* log_in(utente *head)
         printf("Inserisci il nome utente:");
         scanf("%s",username);
         ctrlusername = controllo_utenza(username,head);
-        if(ctrlusername == NULL)
+        if(ctrlusername == NULL)    //se null non è stata trovata
         {
             printf("Utenza non trovata inserire nuovo utente!\n");
             system("PAUSE");
         }
-    }while(ctrlusername == NULL);
+    }while(ctrlusername == NULL); //ripeto se non trovato
 
     do
     {
         //Verifico se la password inserita sia giusta e ripeto finchè non viene inserita quella esatta
         printf("Inserisci la password:");
         scanf("%s",password);
-        ctrlpassword = controllo_password_utenza(username,password,head);
+        ctrlpassword = controllo_password_utenza(username,password,head); //verifica della password
         if(ctrlpassword != 0)
         {
             printf("Password errata \n");
             system("PAUSE");
         }
-    }while(ctrlpassword !=0);
+    }while(ctrlpassword !=0); //ripeto se errata
 
     printf("Log in  effettuato!\n");
     return ctrlusername;
@@ -190,7 +189,7 @@ utente* sign_up(utente *head)
         system("CLS");
         printf("Inserisci il tuo nome utente(MAX 15):");
         scanf("%s",nuovoutente->infoutente.username);
-        trovato = controllo_utenza(nuovoutente->infoutente.username,head);
+        trovato = controllo_utenza(nuovoutente->infoutente.username,head);//cerco se esiste gia un'utenza con questo nome
         if(trovato != NULL)
         {
             printf("Utenza gia' esistente!\n");
@@ -221,7 +220,7 @@ utente* sign_up(utente *head)
             strcpy(nuovoutente->infoutente.post[i],"");
             i++;
         }
-    nuovoutente->infoutente.seguiti = NULL;
+    nuovoutente->infoutente.seguiti = NULL; //per evitare segmentation fault
     nuovoutente->next = NULL;
     return nuovoutente; //restituisco la nuova utenza
 }
@@ -250,7 +249,7 @@ void stampa_utenti(utente *utente)
 {
     //scorro la lista per stampare il nome di tutti gli utenti
     printf("UTENTI\n");
-    while(utente != NULL)
+    while(utente != NULL) //scorro la lista fino all'ultimo
     {
         printf("%s\n" ,utente->infoutente.username);
         utente = utente->next;
@@ -455,6 +454,7 @@ void vedi_post_seguiti(utente* utentein)
 utente* init(utente * head)
 {
     utente * u = NULL;
+    //Username da caricare
     char names[5][USER_LENGTH] = {
                          "octavio",
                          "roberto",
@@ -462,6 +462,7 @@ utente* init(utente * head)
                          "luca",
                          "arturo"
                      };
+    //Post da caricare
     char posts[10][POST_LENGTH] = {
                          "ciao mondo","oggi mi sento una sedia",
                          "pewpew","oggi sono felice",
@@ -496,8 +497,8 @@ utente* elimina_utente(utente* head)
    char username[USER_LENGTH];
    char password[USER_LENGTH];
    utente* ctrlusername; //controllo per verifica dell'utenza
-   int ctrlpassword = 0;
-   char scelta = ' ';
+   int ctrlpassword = 0; //controllo per la password
+   char scelta = ' ';    //scelta e conferma dell'eliminazione
    utente* temp = head;
    utente* app = head;
 
@@ -551,6 +552,7 @@ utente* elimina_utente(utente* head)
                 temp->next = head->next;
                 free(head->infoutente.post);
                 free(head);
+                printf("Eliminazione avvenuta con successo!\n");
                 return app;
             }
             temp = temp->next;
@@ -559,7 +561,7 @@ utente* elimina_utente(utente* head)
        }
     }else
     {
-        printf("Eliminazione annullata!\n",username);//in caso si utente non trovato
+        printf("Eliminazione annullata!\n",username);//in caso di utente non trovato
     }
 }
 
